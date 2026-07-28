@@ -1,0 +1,27 @@
+[build]
+  publish = "."
+
+  # theres no build step, the files in this repo ARE the site. but netlify auto
+  # installs dependencies the moment it spots a package.json, and since we publish
+  # the repo root that would upload all 2000-odd files of node_modules and serve
+  # them next to the app. everything in there is dev only (linter, local server)
+  # so we just bin it before publishing.
+  #
+  # heads up: this only runs on a git-connected deploy. if you drag and drop the
+  # folder onto netlify instead, there IS no build, so delete node_modules first.
+  command = "rm -rf node_modules"
+
+[build.environment]
+  # pinned so netlify changing its default node version cant break an install
+  # that has nothing to do with this site in the first place
+  NODE_VERSION = "20"
+
+# no bundler here, so filenames have no content hash in them and the browser has
+# no way of telling a stale file from a fresh one. making everything revalidate
+# means a deploy shows up immediately. costs basically nothing either - a
+# revalidation is a tiny 304 with an empty body, and the service worker answers
+# from its own cache first anyway.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

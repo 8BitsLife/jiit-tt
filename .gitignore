@@ -1,0 +1,14 @@
+node_modules/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Netlify
+.netlify/
+
+# Logs
+*.log
+npm-debug.log*

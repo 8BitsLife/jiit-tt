@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>JIIT Timetable</title>
+  <meta name="description" content="Weekly timetable for JIIT-128 &amp; JIIT-62 B.Tech I &amp; II Year — all batches, Odd 2026. Tap a class to see teacher names." />
+  <meta name="theme-color" content="#0D0B08" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230D0B08'/%3E%3Ctext x='32' y='43' font-size='32' text-anchor='middle' fill='%23D4A94E' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- this tiny script MUST stay inline and up here. it sets the theme before the
+       browser paints anything, otherwise dark mode users get blasted with a white
+       flash for a split second every single load. yes it looks out of place. leave it -->
+  <script>document.documentElement.dataset.theme = localStorage.getItem("tt-theme") || "dark";</script>
+</head>
+<body>
+
+  <!-- the loading screen. hangs about for a moment then deletes itself, see js/splash.js -->
+  <div class="splash" id="splash" aria-hidden="true">
+    <div class="splash-rig">
+      <div class="cord splash-cord"></div>
+      <svg class="monkey" width="48" height="42" viewBox="0 0 15 13" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="6" y="0" width="1" height="1" fill="#E0B285"/><rect x="8" y="0" width="1" height="1" fill="#E0B285"/>
+        <rect x="5" y="1" width="1" height="2" fill="#7A4E2B"/><rect x="9" y="1" width="1" height="2" fill="#7A4E2B"/>
+        <rect x="3" y="2" width="1" height="2" fill="#7A4E2B"/><rect x="11" y="2" width="1" height="2" fill="#7A4E2B"/>
+        <rect x="3" y="3" width="1" height="1" fill="#E0B285"/><rect x="11" y="3" width="1" height="1" fill="#E0B285"/>
+        <rect x="4" y="2" width="7" height="1" fill="#7A4E2B"/>
+        <rect x="4" y="3" width="1" height="4" fill="#7A4E2B"/><rect x="10" y="3" width="1" height="4" fill="#7A4E2B"/>
+        <rect x="5" y="3" width="5" height="3" fill="#E0B285"/>
+        <rect x="6" y="4" width="1" height="1" fill="#2A1B10"/><rect x="8" y="4" width="1" height="1" fill="#2A1B10"/>
+        <rect x="7" y="5" width="1" height="1" fill="#2A1B10"/>
+        <rect x="5" y="6" width="5" height="1" fill="#7A4E2B"/>
+        <rect x="5" y="7" width="5" height="4" fill="#7A4E2B"/>
+        <rect x="6" y="8" width="3" height="2" fill="#E0B285"/>
+        <rect x="10" y="8" width="2" height="1" fill="#7A4E2B"/><rect x="12" y="7" width="1" height="2" fill="#7A4E2B"/><rect x="13" y="6" width="1" height="1" fill="#7A4E2B"/>
+        <rect x="5" y="11" width="1" height="1" fill="#7A4E2B"/><rect x="9" y="11" width="1" height="1" fill="#7A4E2B"/>
+        <rect x="4" y="12" width="2" height="1" fill="#7A4E2B"/><rect x="9" y="12" width="2" height="1" fill="#7A4E2B"/>
+      </svg>
+    </div>
+    <p class="splash-word">Timetable</p>
+    <p class="splash-sub">JIIT · Odd 2026</p>
+    <span class="splash-bar"><i></i></span>
+  </div>
+
+  <div class="app">
+
+    <header class="top">
+      <h1 class="ascii" aria-label="Timetable"><pre aria-hidden="true"> _____   ___   __  __   ___   _____     _     ___   _     ___
+|_   _| |_ _| |  \/  | | __| |_   _|   /_\   | _ ) | |    | __|
+  | |    | |  | |\/| | | _|    | |    / _ \  | _ \ | |__  | _|
+  |_|   |___| |_|  |_| |___|   |_|   /_/ \_\ |___/ |____| |___|</pre></h1>
+
+      <div class="top-row">
+        <div class="campus-switch" id="campusSwitch" data-active="128" role="tablist" aria-label="Choose campus">
+          <span class="campus-thumb" aria-hidden="true"></span>
+          <button class="campus-btn" role="tab" data-campus="128" aria-selected="true">JIIT-128</button>
+          <button class="campus-btn" role="tab" data-campus="62" aria-selected="false">JIIT-62</button>
+        </div>
+
+        <div class="icon-row">
+          <a class="icon-btn" href="https://github.com/8BitsLife" target="_blank" rel="noopener" aria-label="GitHub — 8BitsLife">
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          </a>
+          <button class="icon-btn" id="themeBtn" aria-label="Switch to light mode">
+            <svg id="iconSun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.3 4.3l1.7 1.7M18 18l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.3 19.7 6 18M18 6l1.7-1.7"/></svg>
+            <svg id="iconMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"/></svg>
+          </button>
+          <button class="icon-btn" id="toolsBtn" aria-haspopup="dialog" aria-label="Tools">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/>
+              <rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="control-bar">
+        <button class="batch-open pill-ghost" id="semOpen" aria-haspopup="dialog" aria-label="Choose semester">
+          <span id="semLabel">Sem 3</span>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="batch-open" id="batchOpen" aria-haspopup="dialog" aria-label="Choose batch">
+          <span id="batchLabel">F1</span>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="status-bar" id="statusBar" aria-live="polite">
+          <span class="live-dot" id="liveDot" hidden></span><span id="statusText"></span>
+        </div>
+      </div>
+    </header>
+
+    <nav class="days" role="tablist" aria-label="Select day" id="dayTabs"></nav>
+
+    <main>
+      <div class="day-summary" id="daySummary"></div>
+      <p class="hint" id="tapHint">Tap any class to see teacher names</p>
+      <ol class="schedule" id="schedule"></ol>
+
+      <section class="legend">
+        <h2>Your courses</h2>
+        <ul id="courseList"></ul>
+      </section>
+
+      <footer class="foot">
+        <p>Compiled from the official JIIT-128 &amp; JIIT-62 Odd Semester 2026 timetables.</p>
+        <p>Got a problem? Reach out at <a class="mail" href="mailto:gajananjisarvesh@gmail.com">gajananjisarvesh@gmail.com</a></p>
+      </footer>
+    </main>
+
+  </div>
+
+  <!-- ONE dark backdrop shared by all three sheets below, no point having three of them (js/ui/sheet.js) -->
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+
+  <!-- batch picker - the big grid of F1, F2, F3... chips -->
+  <div class="sheet" id="batchSheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <h2 id="sheetTitle">Choose your batch</h2>
+    <div id="batchGroups"></div>
+  </div>
+
+  <!-- semester picker, filled in by js/ui/pickers.js -->
+  <div class="sheet" id="semSheet" role="dialog" aria-modal="true" aria-labelledby="semTitle" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <h2 id="semTitle">Choose semester</h2>
+    <div id="semOptions"></div>
+  </div>
+
+  <!-- the tools sheet. its empty here on purpose, js/tools/ fills the body in -->
+  <div class="sheet" id="toolsSheet" role="dialog" aria-modal="true" aria-labelledby="toolsTitle" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="tool-head">
+      <button class="tool-back" id="toolBack" aria-label="Back to tools" hidden>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3 5 8l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 id="toolsTitle">Tools</h2>
+    </div>
+    <div id="toolsBody"></div>
+  </div>
+
+  <!-- ok so this is a pixel monkey who slides down a cord and yanks the light on
+       when you switch theme. completely unnecessary. absolutely staying. -->
+  <div class="bulb-rig" id="bulbRig" hidden aria-hidden="true">
+    <div class="swinger">
+      <div class="cord"></div>
+      <svg class="monkey" width="60" height="52" viewBox="0 0 15 13" shape-rendering="crispEdges" aria-hidden="true">
+        <!-- his little hands gripping the cord -->
+        <rect x="6" y="0" width="1" height="1" fill="#E0B285"/><rect x="8" y="0" width="1" height="1" fill="#E0B285"/>
+        <!-- arms -->
+        <rect x="5" y="1" width="1" height="2" fill="#7A4E2B"/><rect x="9" y="1" width="1" height="2" fill="#7A4E2B"/>
+        <!-- ears -->
+        <rect x="3" y="2" width="1" height="2" fill="#7A4E2B"/><rect x="11" y="2" width="1" height="2" fill="#7A4E2B"/>
+        <rect x="3" y="3" width="1" height="1" fill="#E0B285"/><rect x="11" y="3" width="1" height="1" fill="#E0B285"/>
+        <!-- head -->
+        <rect x="4" y="2" width="7" height="1" fill="#7A4E2B"/>
+        <rect x="4" y="3" width="1" height="4" fill="#7A4E2B"/><rect x="10" y="3" width="1" height="4" fill="#7A4E2B"/>
+        <rect x="5" y="3" width="5" height="3" fill="#E0B285"/>
+        <rect x="6" y="4" width="1" height="1" fill="#2A1B10"/><rect x="8" y="4" width="1" height="1" fill="#2A1B10"/>
+        <rect x="7" y="5" width="1" height="1" fill="#2A1B10"/>
+        <rect x="5" y="6" width="5" height="1" fill="#7A4E2B"/>
+        <!-- body and the lighter belly patch -->
+        <rect x="5" y="7" width="5" height="4" fill="#7A4E2B"/>
+        <rect x="6" y="8" width="3" height="2" fill="#E0B285"/>
+        <!-- tail -->
+        <rect x="10" y="8" width="2" height="1" fill="#7A4E2B"/><rect x="12" y="7" width="1" height="2" fill="#7A4E2B"/><rect x="13" y="6" width="1" height="1" fill="#7A4E2B"/>
+        <!-- legs and feet -->
+        <rect x="5" y="11" width="1" height="1" fill="#7A4E2B"/><rect x="9" y="11" width="1" height="1" fill="#7A4E2B"/>
+        <rect x="4" y="12" width="2" height="1" fill="#7A4E2B"/><rect x="9" y="12" width="2" height="1" fill="#7A4E2B"/>
+      </svg>
+      <svg class="bulb" id="bulbSvg" width="44" height="62" viewBox="0 0 44 62" aria-hidden="true">
+        <circle class="glass" cx="22" cy="22" r="16"/>
+        <path class="filament" d="M16 30 L19 24 L22 29 L25 24 L28 30" fill="none" stroke-width="1.6" stroke-linecap="round"/>
+        <path class="neck" d="M16 36 L28 36 L26 42 L18 42 Z"/>
+        <rect class="base" x="15" y="42" width="14" height="10" rx="2"/>
+        <line class="ridge" x1="15" y1="45.5" x2="29" y2="45.5" stroke-width="1.4"/>
+        <line class="ridge" x1="15" y1="49" x2="29" y2="49" stroke-width="1.4"/>
+        <path class="tip" d="M19 52 L25 52 L22 57 Z"/>
+      </svg>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

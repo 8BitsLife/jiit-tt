@@ -1,0 +1,21 @@
+{
+  "name": "jiit-timetable",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Weekly timetable for JIIT-128 and JIIT-62 B.Tech students — a static, offline-capable web app with no runtime dependencies.",
+  "homepage": "https://github.com/8BitsLife",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "http-server . -p 8888 -c-1",
+    "lint": "eslint .",
+    "test": "node scripts/check-precache.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@stylistic/eslint-plugin": "^5.6.0",
+    "eslint": "^9.39.0",
+    "globals": "^16.5.0",
+    "http-server": "^14.1.1"
+  }
+}
