@@ -26,6 +26,43 @@ export function registerServiceWorker()
   return navigator.serviceWorker.register("sw.js").catch(() => null);
 }
 
+/* THE reason nobody should ever be told to "hard refresh".
+
+   Assets are served cache-first, so after a deploy the page you are looking at is
+   still running the OLD javascript even though the new worker has already
+   installed. One reload fixes it - so we do that reload ourselves, once, the
+   moment the new worker takes over. */
+export function reloadOnUpdate()
+{
+  if (!("serviceWorker" in navigator))
+  {
+    return;
+  }
+
+  /* No controller yet means this is a first visit. The controllerchange coming
+     shortly is the worker installing for the very first time, not an update, and
+     reloading then would be a pointless flash. */
+  if (!navigator.serviceWorker.controller)
+  {
+    return;
+  }
+
+  let reloading = false;
+
+  navigator.serviceWorker.addEventListener("controllerchange", () =>
+  {
+    /* the flag matters: without it a slow claim can fire twice and you get a
+       reload loop, which is a far worse bug than a stale page */
+    if (reloading)
+    {
+      return;
+    }
+
+    reloading = true;
+    location.reload();
+  });
+}
+
 async function ourCaches()
 {
   const keys = await caches.keys();

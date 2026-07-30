@@ -4,15 +4,18 @@
    order and then keeps the page honest about what time it is. */
 
 import { initSplash } from "./splash.js";
-import { setDay, subscribe } from "./state.js";
+import { selection, setDay, subscribe } from "./state.js";
 import { initTheme } from "./theme.js";
-import { canWorkOffline, registerServiceWorker } from "./tools/offline.js";
+import { canWorkOffline, registerServiceWorker, reloadOnUpdate } from "./tools/offline.js";
 import { initWordmark } from "./wordmark.js";
 import { renderLegend } from "./ui/course-legend.js";
 import { renderDayTabs } from "./ui/day-tabs.js";
 import { syncPickers } from "./ui/pickers.js";
 import { refreshCardStates, renderSchedule } from "./ui/schedule-list.js";
 import { renderStatus } from "./ui/status-bar.js";
+import { initSwipe } from "./ui/swipe.js";
+import { initVersion } from "./ui/version.js";
+import { slideSchedule } from "./ui/day-slide.js";
 import { defaultDay, todayIndex } from "./util.js";
 
 import "./tools/index.js"; /* this one has no exports, importing it IS the setup */
@@ -22,10 +25,20 @@ const REFRESH_MS = 30000;
 /* tapping a different day only needs the class list redrawn. but changing your
    batch or semester or campus changes literally everything below it, so that
    redraws the pills, the course legend and the status line too. */
+/* which day we were on last time, so a day change knows which way the page
+   should travel. forwards is +1, backwards is -1, and anything that is not a
+   day change is 0 - no page turn, just redraw. */
+let shownDay = selection.day;
+
 function render(change)
 {
+  const direction = change === "day" ? Math.sign(selection.day - shownDay) : 0;
+  shownDay = selection.day;
+
+  /* the tabs update immediately rather than waiting for the slide, so the day
+     you picked lights up the instant you touch it */
   renderDayTabs();
-  renderSchedule();
+  slideSchedule(direction, renderSchedule);
 
   if (change !== "day")
   {
@@ -63,6 +76,8 @@ subscribe(render);
 initTheme();
 initWordmark();
 initSplash();
+initSwipe();
+initVersion();
 render("selection");
 
 setInterval(tick, REFRESH_MS);
@@ -82,5 +97,9 @@ document.addEventListener("visibilitychange", () =>
    an old cached copy foreverrrr */
 if (canWorkOffline())
 {
+  /* the watcher goes on FIRST. registering can hand control over almost
+     immediately, and if nobody is listening yet the page sits there running the
+     old code until the next visit. */
+  reloadOnUpdate();
   window.addEventListener("load", registerServiceWorker);
 }

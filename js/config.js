@@ -2,6 +2,12 @@
    them with. nothing in here ever changes while the app is running - if you want
    to tweak how the app looks or behaves, this is the first place to look. */
 
+/* bumped on every deploy, and shown in the footer so anyone reporting a problem
+   can tell you exactly which build they are looking at. `npm test` checks this
+   against the cache name in sw.js, because the two drifting apart is the whole
+   reason people end up stuck on an old copy. */
+export const APP_VERSION = "28";
+
 export const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 export const DAY_SHORT = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
 

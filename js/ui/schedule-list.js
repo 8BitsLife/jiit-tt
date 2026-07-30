@@ -84,7 +84,23 @@ function gapLabel(gapMinutes, previousEnd, nextStart)
   return { text, isLunch };
 }
 
-function buildGapRow(gapMinutes, previousEnd, nextStart, index)
+/* When the whole day is sliding in as one page, the rows must NOT also play
+   their own entrance — two animations at once looks frantic. Killing it inline
+   rather than from a parent class matters: a class would stop applying the
+   moment the slide finished, and every card would then animate in late. */
+function setEntrance(element, index, animate)
+{
+  if (animate)
+  {
+    element.style.animationDelay = `${index * 40}ms`;
+  }
+  else
+  {
+    element.style.animation = "none";
+  }
+}
+
+function buildGapRow(gapMinutes, previousEnd, nextStart, index, animate)
 {
   const { text, isLunch } = gapLabel(gapMinutes, previousEnd, nextStart);
 
@@ -92,12 +108,12 @@ function buildGapRow(gapMinutes, previousEnd, nextStart, index)
   row.className = "gap-row" + (isLunch ? " lunch" : "");
   row.innerHTML = `<span>${text}</span>`;
   /* staggered so the rows cascade in instead of all appearing at once */
-  row.style.animationDelay = `${index * 40}ms`;
+  setEntrance(row, index, animate);
 
   return row;
 }
 
-function buildCard(entry, index)
+function buildCard(entry, index, animate)
 {
   const card = document.createElement("li");
   card.className = "class-card";
@@ -106,7 +122,7 @@ function buildCard(entry, index)
   card.dataset.start = entry.start;
   card.dataset.end = entry.end;
   card.style.setProperty("--accent", courseColor(entry.c));
-  card.style.animationDelay = `${index * 40}ms`;
+  setEntrance(card, index, animate);
 
   const facultyRows = entry.f
     .map(initials =>
@@ -174,7 +190,8 @@ function buildCard(entry, index)
   return card;
 }
 
-export function renderSchedule()
+/* `animateCards` is off while the day is sliding — see js/ui/day-slide.js. */
+export function renderSchedule({ animateCards = true } = {})
 {
   const classes = classesFor(selection.batch, selection.day);
   const dayName = DAY_NAMES[selection.day];
@@ -212,11 +229,11 @@ export function renderSchedule()
 
       if (gap > GAP_MIN)
       {
-        list.appendChild(buildGapRow(gap, previousEnd, entry.start, index));
+        list.appendChild(buildGapRow(gap, previousEnd, entry.start, index, animateCards));
       }
     }
 
-    list.appendChild(buildCard(entry, index));
+    list.appendChild(buildCard(entry, index, animateCards));
   });
 
   refreshCardStates();

@@ -68,6 +68,26 @@ for (const dir of SHIPPED_DIRS)
   }
 }
 
+/* The footer shows APP_VERSION, but what actually decides whether someone gets
+   the new build is the cache name in sw.js. If those two drift, the footer
+   confidently reports a version the user is not running — which is exactly the
+   confusion the version line exists to prevent. */
+const swSource = readFileSync(path.join(root, "sw.js"), "utf8");
+const cacheName = /const CACHE = "([^"]+)"/.exec(swSource);
+const appVersion = /export const APP_VERSION = "([^"]+)"/.exec(
+  readFileSync(path.join(root, "js", "config.js"), "utf8"));
+
+if (!cacheName || !appVersion)
+{
+  problems.push("could not read CACHE from sw.js or APP_VERSION from js/config.js");
+}
+else if (cacheName[1] !== `tt-v${appVersion[1]}`)
+{
+  problems.push(
+    `APP_VERSION is "${appVersion[1]}" so sw.js should cache "tt-v${appVersion[1]}", ` +
+    `but it says "${cacheName[1]}" — bump both together`);
+}
+
 if (problems.length)
 {
   console.error("Offline cache is out of step:\n");

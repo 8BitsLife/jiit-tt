@@ -99,9 +99,13 @@
     <nav class="days" role="tablist" aria-label="Select day" id="dayTabs"></nav>
 
     <main>
-      <div class="day-summary" id="daySummary"></div>
-      <p class="hint" id="tapHint">Tap any class to see teacher names</p>
-      <ol class="schedule" id="schedule"></ol>
+      <!-- everything that belongs to ONE day lives in here, so it can slide in and
+           out as a single page when you swipe (js/ui/day-slide.js) -->
+      <div class="day-page" id="dayPage">
+        <div class="day-summary" id="daySummary"></div>
+        <p class="hint" id="tapHint">Tap a class for teacher names · swipe left or right to change day</p>
+        <ol class="schedule" id="schedule"></ol>
+      </div>
 
       <section class="legend">
         <h2>Your courses</h2>
@@ -111,6 +115,11 @@
       <footer class="foot">
         <p>Compiled from the official JIIT-128 &amp; JIIT-62 Odd Semester 2026 timetables.</p>
         <p>Got a problem? Reach out at <a class="mail" href="mailto:gajananjisarvesh@gmail.com">gajananjisarvesh@gmail.com</a></p>
+        <p class="version">
+          <span id="appVersion"></span>
+          <span class="version-note">updates on its own</span>
+          <button class="version-check" id="versionCheck">Check now</button>
+        </p>
       </footer>
     </main>
 

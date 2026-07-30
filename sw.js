@@ -11,7 +11,7 @@
  * somebodys browser over.
  */
 
-const CACHE = "tt-v24";
+const CACHE = "tt-v28";
 
 /* every file needed to open the app with no connection. yes you do have to add
    new ones here by hand - but `npm test` cross checks this list against whats
@@ -39,11 +39,14 @@ const CORE = [
   "./js/tools/rooms.js",
   "./js/tools/teachers.js",
   "./js/ui/course-legend.js",
+  "./js/ui/day-slide.js",
   "./js/ui/day-tabs.js",
   "./js/ui/pickers.js",
   "./js/ui/schedule-list.js",
   "./js/ui/sheet.js",
   "./js/ui/status-bar.js",
+  "./js/ui/swipe.js",
+  "./js/ui/version.js",
 ];
 
 self.addEventListener("install", event =>
