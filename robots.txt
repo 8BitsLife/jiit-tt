@@ -1,0 +1,9 @@
+# nothing here is private - its a public timetable and the whole source is on
+# github anyway - so crawl whatever you like.
+#
+# note we deliberately do NOT block /js/ or /data/. google renders the page with
+# javascript before it indexes it, so blocking those would stop it seeing any
+# actual content and the site would look empty in search results.
+
+User-agent: *
+Allow: /

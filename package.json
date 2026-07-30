@@ -9,7 +9,8 @@
   "scripts": {
     "start": "http-server . -p 8888 -c-1",
     "lint": "eslint .",
-    "test": "node scripts/check-precache.mjs"
+    "test": "node scripts/check-precache.mjs",
+    "favicon": "node scripts/make-favicon.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

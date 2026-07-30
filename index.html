@@ -6,6 +6,10 @@
   <title>JIIT Timetable</title>
   <meta name="description" content="Weekly timetable for JIIT-128 &amp; JIIT-62 B.Tech I &amp; II Year — all batches, Odd 2026. Tap a class to see teacher names." />
   <meta name="theme-color" content="#0D0B08" />
+  <!-- the svg below is the good one, it scales to any size. the .ico is only here
+       because ios safari and friends go and ask for /favicon.ico regardless of what
+       we put in the html, and every one of those was a 404 in the logs -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230D0B08'/%3E%3Ctext x='32' y='43' font-size='32' text-anchor='middle' fill='%23D4A94E' font-family='Georgia,serif'%3ET%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -61,7 +65,7 @@
         </div>
 
         <div class="icon-row">
-          <a class="icon-btn" href="https://github.com/8BitsLife" target="_blank" rel="noopener" aria-label="GitHub — 8BitsLife">
+          <a class="icon-btn" href="https://github.com/8BitsLife/jiit-tt.git" target="_blank" rel="noopener" aria-label="GitHub — 8BitsLife">
             <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
           </a>
           <button class="icon-btn" id="themeBtn" aria-label="Switch to light mode">
