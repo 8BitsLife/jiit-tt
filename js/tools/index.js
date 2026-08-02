@@ -7,6 +7,7 @@
 import { scopeLine } from "../labels.js";
 import { openSheet } from "../ui/sheet.js";
 import { byId, escapeHtml } from "../util.js";
+import { renderIcsExportTool } from "./export-ics.js";
 import { renderFreeSlotsTool } from "./free-slots.js";
 import { renderOfflineTool } from "./offline.js";
 import { pushPanel, resetPanels, setRootPanel } from "./panels.js";
@@ -16,13 +17,12 @@ import { renderTeacherTool } from "./teachers.js";
 const sheet = byId("toolsSheet");
 const button = byId("toolsBtn");
 
-/* add a tool by adding a line here. thats it - the menu builds itself off this
-   array, numbering and all. */
 const TOOLS = [
   { name: "Teacher view", desc: "Where a lecturer is, all week", render: renderTeacherTool },
   { name: "Free rooms", desc: "Rooms nobody is using, any period", render: renderRoomsTool },
   { name: "Offline access", desc: "Keep the timetable on this device", render: renderOfflineTool },
   { name: "Free-slot finder", desc: "Periods two batches are both free, either campus", render: renderFreeSlotsTool },
+  { name: "Export Calendar (.ics)", desc: "Export weekly schedule for your batch", render: renderIcsExportTool },
 ];
 
 const CHEVRON =

@@ -36,6 +36,7 @@ const CORE = [
   "./js/theme.js",
   "./js/util.js",
   "./js/wordmark.js",
+  "./js/tools/export-ics.js",
   "./js/tools/free-slots.js",
   "./js/tools/index.js",
   "./js/tools/offline.js",
