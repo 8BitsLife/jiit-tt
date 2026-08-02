@@ -73,15 +73,8 @@ export function initSwipe()
 
     /* swiping left drags the page leftwards, which reveals the NEXT day —
        same direction as flicking through photos. */
-    const next = selection.day + (dx < 0 ? 1 : -1);
-
-    /* deliberately clamped rather than wrapped. jumping from Saturday back to
-       Monday with no visual cue just reads as a bug. */
-    if (next < 0 || next >= DAY_NAMES.length)
-    {
-      return;
-    }
-
+    const len = DAY_NAMES.length;
+    const next = (selection.day + (dx < 0 ? 1 : -1) + len) % len;
     setDay(next);
   }, { passive: true });
 }

@@ -18,6 +18,8 @@ import { initVersion } from "./ui/version.js";
 import { slideSchedule } from "./ui/day-slide.js";
 import { defaultDay, todayIndex } from "./util.js";
 
+import { DAY_NAMES } from "./config.js";
+
 import "./tools/index.js"; /* this one has no exports, importing it IS the setup */
 
 const REFRESH_MS = 30000;
@@ -32,7 +34,23 @@ let shownDay = selection.day;
 
 function render(change)
 {
-  const direction = change === "day" ? Math.sign(selection.day - shownDay) : 0;
+  let direction = 0;
+  if (change === "day")
+  {
+    const maxIdx = DAY_NAMES.length - 1;
+    if (shownDay === maxIdx && selection.day === 0)
+    {
+      direction = 1;
+    }
+    else if (shownDay === 0 && selection.day === maxIdx)
+    {
+      direction = -1;
+    }
+    else
+    {
+      direction = Math.sign(selection.day - shownDay);
+    }
+  }
   shownDay = selection.day;
 
   /* the tabs update immediately rather than waiting for the slide, so the day
