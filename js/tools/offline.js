@@ -69,18 +69,116 @@ async function ourCaches()
   return keys.filter(key => key.startsWith(CACHE_PREFIX));
 }
 
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", event =>
+{
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  updateInstallButtons();
+});
+
+window.addEventListener("appinstalled", () =>
+{
+  deferredInstallPrompt = null;
+  updateInstallButtons();
+});
+
+export function isAppInstalled()
+{
+  return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+}
+
+export function initInstallPrompt()
+{
+  const btn = document.getElementById("installBtn");
+  if (btn)
+  {
+    btn.addEventListener("click", triggerInstall);
+  }
+  updateInstallButtons();
+}
+
+export async function triggerInstall()
+{
+  if (deferredInstallPrompt)
+  {
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    if (choice && choice.outcome === "accepted")
+    {
+      deferredInstallPrompt = null;
+    }
+    updateInstallButtons();
+  }
+  else if (isAppInstalled())
+  {
+    alert("This app is already installed on your device.");
+  }
+  else
+  {
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    if (isIOS)
+    {
+      alert("To install this app on iOS: tap the Share icon in Safari and choose 'Add to Home Screen'.");
+    }
+    else
+    {
+      alert("To install this app: open your browser menu (⋮ or ⊕) and choose 'Install app' or 'Add to Home screen'.");
+    }
+  }
+}
+
+function updateInstallButtons()
+{
+  const btn = document.getElementById("installBtn");
+  if (btn)
+  {
+    btn.hidden = isAppInstalled();
+  }
+  const offlineBtn = document.getElementById("offlineInstall");
+  if (offlineBtn)
+  {
+    if (isAppInstalled())
+    {
+      offlineBtn.textContent = "App Installed";
+      offlineBtn.disabled = true;
+    }
+    else
+    {
+      offlineBtn.textContent = "Install App";
+      offlineBtn.disabled = false;
+    }
+  }
+}
+
 export function renderOfflineTool(host)
 {
   host.innerHTML = `
     <p class="tool-note">Stores the app in this browser so it opens with no signal.</p>
     <div class="tool-status" id="offlineStatus">Checking…</div>
     <div class="tool-actions" id="offlineActions">
-      <button class="tool-btn" id="offlineUpdate">Check for updates</button>
+      <button class="tool-btn" id="offlineInstall">Install App</button>
+      <button class="tool-btn ghost" id="offlineUpdate">Check for updates</button>
       <button class="tool-btn ghost" id="offlineClear">Remove offline copy</button>
     </div>`;
 
   const status = host.querySelector("#offlineStatus");
   const actions = host.querySelector("#offlineActions");
+  const offlineInstallBtn = host.querySelector("#offlineInstall");
+
+  if (offlineInstallBtn)
+  {
+    if (isAppInstalled())
+    {
+      offlineInstallBtn.textContent = "App Installed";
+      offlineInstallBtn.disabled = true;
+    }
+    else
+    {
+      offlineInstallBtn.addEventListener("click", triggerInstall);
+    }
+  }
 
   /* two different reasons this can be unavailable and they need different
      wording, because "your browser is too old" and "youre on http" are very

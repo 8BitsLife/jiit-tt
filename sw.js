@@ -20,6 +20,10 @@ const CACHE = "tt-v28";
 const CORE = [
   "./",
   "./index.html",
+  "./favicon.ico",
+  "./manifest.json",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
   "./css/style.css",
   "./data/timetable.js",
   "./js/config.js",
@@ -92,7 +96,7 @@ function handleNavigation(request)
       caches.open(CACHE).then(cache => cache.put("./index.html", copy));
       return response;
     })
-    .catch(() => caches.match("./index.html").then(hit => hit || caches.match("./")));
+    .catch(() => caches.match(request).then(hit => hit || caches.match("./index.html").then(fallback => fallback || caches.match("./"))));
 }
 
 /* everything else (css, js, the data) comes straight out of the cache instantly
