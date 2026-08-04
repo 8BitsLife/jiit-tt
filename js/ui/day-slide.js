@@ -27,6 +27,25 @@ const ALL = Object.values(CLASSES).flatMap(c => [c.leave, c.enter]);
    newer swipe is already painting the day the user actually wants. */
 let ticket = 0;
 
+/* Swipe while scrolled halfway down a busy day and the next day may be much
+   shorter — leaving you parked in the footer looking at nothing, wondering if
+   the swipe even worked.
+
+   The scroll is deliberately instant, and happens while the page is still faded
+   out mid-animation, so it is never seen. It only ever scrolls up to bring the
+   day back into view; if you can already see it, nothing moves. */
+function keepPageInView(page)
+{
+  const top = page.getBoundingClientRect().top;
+
+  if (top >= 0)
+  {
+    return;
+  }
+
+  window.scrollTo({ top: Math.max(0, window.scrollY + top - 8), behavior: "instant" });
+}
+
 export function slideSchedule(direction, paint)
 {
   const page = byId("dayPage");
@@ -59,6 +78,7 @@ export function slideSchedule(direction, paint)
     /* the cards are told not to run their own entrance animation — the whole
        page is already moving, and both at once looks frantic. */
     paint({ animateCards: false });
+    keepPageInView(page);
 
     page.classList.remove(leave);
     void page.offsetWidth;

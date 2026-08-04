@@ -89,14 +89,7 @@
         </div>
 
         <div class="icon-row">
-          <button class="icon-btn" id="installBtn" aria-label="Install App" title="Install App">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-          </button>
-          <a class="icon-btn" href="https://github.com/8BitsLife/jiit-tt.git" target="_blank" rel="noopener"
+          <a class="icon-btn" href="https://github.com/8BitsLife/jiit-tt" target="_blank" rel="noopener"
             aria-label="GitHub — 8BitsLife">
             <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path
@@ -116,12 +109,19 @@
             </svg>
           </button>
           <button class="icon-btn" id="toolsBtn" aria-haspopup="dialog" aria-label="Tools">
+            <!-- two sliders, thumbs at different heights. deliberately NOT a spanner:
+                 the sheet behind this button is a numbered menu of things you adjust
+                 and read, not a workshop, and straight rails with square thumbs sit
+                 far better next to the other line icons than a diagonal tool does.
+
+                 every coordinate is symmetric about 12,12 so it needs no centring
+                 fudge - keep it that way if you change it. -->
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linejoin="round" aria-hidden="true">
-              <rect x="3.5" y="3.5" width="7" height="7" rx="1.6" />
-              <rect x="13.5" y="3.5" width="7" height="7" rx="1.6" />
-              <rect x="3.5" y="13.5" width="7" height="7" rx="1.6" />
-              <rect x="13.5" y="13.5" width="7" height="7" rx="1.6" />
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 3v3M7 12v9" />
+              <rect x="4.4" y="6" width="5.2" height="6" rx="1.4" />
+              <path d="M17 3v8M17 17v4" />
+              <rect x="14.4" y="11" width="5.2" height="6" rx="1.4" />
             </svg>
           </button>
         </div>
@@ -206,6 +206,13 @@
         </svg>
       </button>
       <h2 id="toolsTitle">Tools</h2>
+      <!-- tapping the dimmed page behind also closes this, but nobody discovers
+           that on a phone where the sheet covers most of the screen -->
+      <button class="tool-close" id="toolClose" aria-label="Close tools">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
     </div>
     <div id="toolsBody"></div>
   </div>

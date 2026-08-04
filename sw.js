@@ -11,7 +11,7 @@
  * somebodys browser over.
  */
 
-const CACHE = "tt-v28";
+const CACHE = "tt-v2.9";
 
 /* every file needed to open the app with no connection. yes you do have to add
    new ones here by hand - but `npm test` cross checks this list against whats
@@ -24,6 +24,7 @@ const CORE = [
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
+  "./icons/icon-maskable-512.png",
   "./css/style.css",
   "./data/timetable.js",
   "./js/config.js",
@@ -42,6 +43,7 @@ const CORE = [
   "./js/tools/offline.js",
   "./js/tools/panels.js",
   "./js/tools/rooms.js",
+  "./js/tools/subjects.js",
   "./js/tools/teachers.js",
   "./js/ui/course-legend.js",
   "./js/ui/day-slide.js",

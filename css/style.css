@@ -419,9 +419,37 @@ button {
 
 .class-card.expanded .caret { transform: rotate(180deg); }
 
+/* Tapping a card used to snap open. Animating to a height nobody knows ahead of
+   time is the classic css problem, and there is no pure-css answer that actually
+   holds up: the fashionable grid trick (rows 0fr -> 1fr) resolves 1fr to ZERO in
+   a container whose own height is auto, so the panel never opens at all. Tested,
+   not assumed. So the height is measured and animated to a real number from
+   js/ui/schedule-list.js instead.
+
+   The padding lives on the inner element on purpose. Everything here is
+   border-box, so padding on the outer would hold the panel 14px open even at
+   height:0. */
 .card-detail {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: height 280ms var(--ease), opacity 200ms var(--ease), visibility 280ms;
+}
+
+.class-card.expanded .card-detail {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* `visibility` rather than `display` or `hidden`: it keeps the closed panel out
+   of the tab order and away from screen readers, and unlike the other two it can
+   still be transitioned — so it stays visible for the whole closing animation
+   and only then goes away. */
+.card-detail-inner {
+  overflow: hidden;
+  min-height: 0;
   padding: 0 16px 14px 92px;
-  animation: rise 240ms var(--ease) backwards;
 }
 
 .full-title {
@@ -472,7 +500,14 @@ button {
 }
 
 @media (max-width: 420px) {
-  .card-detail { padding-left: 16px; }
+  .card-detail-inner { padding-left: 16px; }
+}
+
+/* the open card lifts slightly out of the stack, so when several are expanded
+   you can still tell which one you just tapped */
+.class-card.expanded {
+  background: var(--surface-2);
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
 }
 
 .class-card::before {
@@ -842,13 +877,25 @@ main {
 }
 
 /* ————— Tools sheet ————— */
+/* pinned, because the sheet scrolls and a long tool (the teacher list runs to 50
+   rows) used to carry the back arrow off the top of the screen with it - leaving
+   you inside a panel with no visible way out.
+
+   the -10px is the sheets own padding-top: sticking there lets the heads padding
+   cover that gap, so rows cannot peek through above it while you scroll. */
 .tool-head {
+  position: sticky;
+  top: -10px;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 10px 0 8px;
+  background: var(--surface-2);
 }
 
-.tool-back {
+.tool-back,
+.tool-close {
   flex: none;
   width: 32px;
   height: 32px;
@@ -861,8 +908,16 @@ main {
   transition: color 150ms var(--ease), border-color 150ms var(--ease), transform 150ms var(--ease);
 }
 
-.tool-back:hover { color: var(--gold); border-color: var(--gold); }
-.tool-back:active { transform: scale(0.92); }
+/* shoved to the far edge so it never gets confused with the back arrow */
+.tool-close { margin-left: auto; }
+
+@media (hover: hover) {
+  .tool-back:hover,
+  .tool-close:hover { color: var(--gold); border-color: var(--gold); }
+}
+
+.tool-back:active,
+.tool-close:active { transform: scale(0.92); }
 
 /* dont delete this one. these elements set their own display, and an author rule
    BEATS the browsers built-in [hidden] rule - so setting .hidden = true from js
@@ -895,30 +950,50 @@ main {
   color: var(--faint);
 }
 
-/* the tool menu entries. numbered 01, 02, 03 like a terminal menu, and gold is
-   the ONLY accent anywhere in here - it was way too colourful before */
-.tool-option {
+/* the tool menu, as blocks rather than a list. still numbered 01, 02, 03 like a
+   terminal menu, and gold is the ONLY accent anywhere in here - it was way too
+   colourful before.
+
+   two columns at every width, deliberately. auto-fit was tempting but on a laptop
+   it fitted three, and at that size the longer descriptions ("periods two batches
+   are both free, either campus") turn into a cramped four line block. this is a
+   phone shaped sheet either way. */
+.tool-grid {
   display: grid;
-  grid-template-columns: auto 1fr 14px;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 14px;
-  margin-top: 6px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* an odd one out at the end would otherwise sit in a half empty row looking like
+   a mistake, so it takes the whole width instead and reads as deliberate. */
+.tool-grid > .tool-option:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+.tool-option {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 108px;
+  padding: 12px 13px 13px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--surface);
   text-align: left;
   animation: rise 320ms var(--ease) backwards;
   transition: border-color 180ms var(--ease), background 180ms var(--ease), transform 140ms var(--ease);
 }
 
-.tool-option:hover {
-  border-color: rgba(212, 169, 78, 0.5);
-  background: var(--surface-2);
-}
+.tool-option:active { transform: scale(0.98); }
 
-.tool-option:active { transform: scale(0.99); }
+/* the number and the arrow share the top line, pinned to opposite corners. this
+   row is a fixed height, which is what keeps every tile's NAME on the same
+   baseline across a row no matter how long the description underneath runs. */
+.tool-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
 
 .tool-idx {
   font-family: var(--font-data);
@@ -930,15 +1005,13 @@ main {
   transition: color 180ms var(--ease);
 }
 
-.tool-copy { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-
 .tool-name {
   font-family: var(--font-data);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  line-height: 1.15;
+  line-height: 1.25;
   transition: color 180ms var(--ease);
 }
 
@@ -949,15 +1022,25 @@ main {
 }
 
 .tool-go {
+  flex: none;
   color: var(--faint);
   transition: transform 180ms var(--ease), color 180ms var(--ease);
 }
 
-.tool-option:hover .tool-idx,
-.tool-option:hover .tool-name,
-.tool-option:hover .tool-go { color: var(--gold); }
+/* hover only where there is a real pointer. on a touchscreen :hover sticks after
+   a tap, which would leave the last tool you opened looking permanently lit. */
+@media (hover: hover) {
+  .tool-option:hover {
+    border-color: rgba(212, 169, 78, 0.5);
+    background: var(--surface-2);
+  }
 
-.tool-option:hover .tool-go { transform: translateX(2px); }
+  .tool-option:hover .tool-idx,
+  .tool-option:hover .tool-name,
+  .tool-option:hover .tool-go { color: var(--gold); }
+
+  .tool-option:hover .tool-go { transform: translateX(2px); }
+}
 
 /* search + rows */
 .tool-input {
@@ -1091,6 +1174,16 @@ main {
   border-color: rgba(212, 169, 78, 0.45);
   background: var(--gold-soft);
   color: var(--gold);
+}
+
+/* lunch is still free time, so it stays a chip - but gold is what "you are both
+   free" looks like everywhere else in here, and lunch is not quite that. dropping
+   it back to the plain surface lets you pick the real gaps out at a glance. */
+.slot-chip.lunch {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--dim);
+  font-weight: 500;
 }
 
 /* two-batch pickers */
@@ -1280,6 +1373,15 @@ main {
 
 .card-main { transition: transform 150ms var(--ease); }
 .card-main:active { transform: scale(0.985); }
+
+/* Only for real pointers. On a touchscreen :hover sticks after a tap, so the
+   last card you touched would sit there looking permanently highlighted. */
+@media (hover: hover) {
+  .class-card { transition: border-color 200ms var(--ease); }
+  .class-card:hover { border-color: color-mix(in srgb, var(--accent) 26%, var(--line)); }
+  .legend li { transition: color 160ms var(--ease); }
+  .legend li:hover .lcode { color: var(--dim); }
+}
 
 .day-tab:active { transform: scale(0.94); }
 .batch-chip:active { transform: scale(0.94); }

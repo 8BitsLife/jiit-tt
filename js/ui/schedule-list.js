@@ -113,6 +113,47 @@ function buildGapRow(gapMinutes, previousEnd, nextStart, index, animate)
   return row;
 }
 
+/* Opens and closes the detail panel by animating its real, measured height.
+   Handing the height back to `auto` at the end matters: a long teacher list can
+   reflow later, and a pinned pixel height would quietly clip it. */
+function setPanelHeight(card, detail, open, animate)
+{
+  if (!animate)
+  {
+    detail.style.height = open ? "auto" : "0px";
+    return;
+  }
+
+  if (open)
+  {
+    detail.style.height = `${detail.scrollHeight}px`;
+
+    detail.addEventListener("transitionend", function done(event)
+    {
+      if (event.propertyName !== "height")
+      {
+        return;
+      }
+
+      detail.removeEventListener("transitionend", done);
+
+      /* they may have closed it again before this landed */
+      if (card.classList.contains("expanded"))
+      {
+        detail.style.height = "auto";
+      }
+    });
+
+    return;
+  }
+
+  /* There is nothing to animate *from* while the height is "auto", so pin the
+     current pixel height and force the browser to accept it before collapsing. */
+  detail.style.height = `${detail.getBoundingClientRect().height}px`;
+  void detail.offsetHeight;
+  detail.style.height = "0px";
+}
+
 function buildCard(entry, index, animate)
 {
   const card = document.createElement("li");
@@ -150,9 +191,11 @@ function buildCard(entry, index, animate)
       </div>
       <svg class="caret" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <div class="card-detail" hidden>
-      <p class="full-title">${escapeHtml(courseFull(entry))} <span class="code">${escapeHtml(entry.c)}</span></p>
-      ${entry.f.length ? `<p class="detail-label">Taught by</p><ul class="fac-list">${facultyRows}</ul>` : ""}
+    <div class="card-detail">
+      <div class="card-detail-inner">
+        <p class="full-title">${escapeHtml(courseFull(entry))} <span class="code">${escapeHtml(entry.c)}</span></p>
+        ${entry.f.length ? `<p class="detail-label">Taught by</p><ul class="fac-list">${facultyRows}</ul>` : ""}
+      </div>
     </div>
     <span class="now-line"><i></i></span>`;
 
@@ -160,21 +203,28 @@ function buildCard(entry, index, animate)
   const detail = card.querySelector(".card-detail");
   const key = cardKey(entry);
 
-  const setOpen = open =>
+  /* `hidden` used to do this, but it is a hard on/off with nothing for a
+     transition to interpolate — which is why tapping a card used to snap.
+     The panel is kept out of the tab order and away from screen readers by
+     `visibility` in the stylesheet, which unlike `display` can be transitioned,
+     so it stays readable for the whole closing animation. */
+  const setOpen = (open, animate = true) =>
   {
-    detail.hidden = !open;
     button.setAttribute("aria-expanded", String(open));
     card.classList.toggle("expanded", open);
+    setPanelHeight(card, detail, open, animate);
   };
 
+  /* Restored from a previous render — it was already open, so it should just be
+     open, not replay the animation. */
   if (expandedKeys.has(key))
   {
-    setOpen(true);
+    setOpen(true, false);
   }
 
   button.addEventListener("click", () =>
   {
-    const open = detail.hidden;
+    const open = !card.classList.contains("expanded");
     setOpen(open);
 
     if (open)

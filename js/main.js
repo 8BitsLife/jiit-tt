@@ -6,7 +6,7 @@
 import { initSplash } from "./splash.js";
 import { selection, setDay, subscribe } from "./state.js";
 import { initTheme } from "./theme.js";
-import { canWorkOffline, initInstallPrompt, registerServiceWorker, reloadOnUpdate } from "./tools/offline.js";
+import { canWorkOffline, registerServiceWorker, reloadOnUpdate } from "./tools/offline.js";
 import { initWordmark } from "./wordmark.js";
 import { renderLegend } from "./ui/course-legend.js";
 import { renderDayTabs } from "./ui/day-tabs.js";
@@ -96,7 +96,6 @@ initWordmark();
 initSplash();
 initSwipe();
 initVersion();
-initInstallPrompt();
 render("selection");
 
 setInterval(tick, REFRESH_MS);

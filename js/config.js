@@ -5,8 +5,11 @@
 /* bumped on every deploy, and shown in the footer so anyone reporting a problem
    can tell you exactly which build they are looking at. `npm test` checks this
    against the cache name in sw.js, because the two drifting apart is the whole
-   reason people end up stuck on an old copy. */
-export const APP_VERSION = "28";
+   reason people end up stuck on an old copy.
+
+   it is a plain string, never compared or sorted, so read it as "major.minor" and
+   bump whichever half you mean - 2.9 goes to 2.10, or to 3.0 for something big. */
+export const APP_VERSION = "2.9";
 
 export const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 export const DAY_SHORT = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];

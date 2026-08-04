@@ -8,7 +8,7 @@
    at 62 in III Sem), and thats dealt with further down where we print the time. */
 
 import { CAMPUSES } from "../../data/timetable.js";
-import { DAY_NAMES, SLOT_COUNT } from "../config.js";
+import { DAY_NAMES, SLOT_LENGTH } from "../config.js";
 import { semChip } from "../labels.js";
 import { coveredSlots, slotStart } from "../schedule.js";
 import { selection } from "../state.js";
@@ -64,6 +64,44 @@ function optionsHtml(entries)
   return openGroup === null ? html : html + "</optgroup>";
 }
 
+/* the college day is not the same length all week. every grid stops at 1pm on a
+   saturday, so running the search out to the full 8 periods reported "12:00 – 5:00
+   free" - which is not a window you can meet in, it is just the day being over.
+
+   read out of the data rather than written down here, so it keeps itself honest
+   when the grids are replaced next semester. */
+function dayEnds()
+{
+  const ends = DAY_NAMES.map(() => -1);
+
+  for (const campus of Object.values(CAMPUSES))
+  {
+    for (const semester of Object.values(campus.sems))
+    {
+      semester.week.forEach((day, index) => day.forEach(entry =>
+      {
+        ends[index] = Math.max(ends[index], ...coveredSlots(entry));
+      }));
+    }
+  }
+
+  return ends;
+}
+
+/* lunch still counts as free - plenty of people are meeting up precisely because
+   they are both eating. it just gets said out loud instead of being folded into a
+   run, because "12:00 - 5:00" hides the fact that an hour of it is lunch.
+
+   the two batches can break at different times (JIIT-62 I Sem eats at 12, everyone
+   else at 1) so a slot is lunch if it is lunch for EITHER of them - hence the
+   warning under the results. and it only counts as lunch when something actually
+   runs afterwards: on saturday nothing does, so that is not a lunch break, the
+   day has simply finished. */
+function lunchSlots(a, b, dayEnd)
+{
+  return new Set([a.semester.lunch, b.semester.lunch].filter(slot => slot < dayEnd));
+}
+
 function busySlots(semester, batchId, day)
 {
   const busy = new Set();
@@ -75,24 +113,33 @@ function busySlots(semester, batchId, day)
   return busy;
 }
 
-/* [1,2,3,6] -> [[1,3],[6,6]]. so three free periods in a row show up as ONE
-   chip saying 1:00 - 3:50, instead of three separate little chips which reads
-   like theyre unconnected. */
-function mergeRuns(slots)
+/* [1,2,3,6] -> two runs, 1-3 and 6-6. so three free periods in a row show up as
+   ONE chip saying 1:00 - 3:50, instead of three separate little chips which reads
+   like theyre unconnected.
+
+   lunch splits a run even though it is free time either side, so it can carry its
+   own label. that split is the whole fix for "12:00 - 5:00".
+
+   a lunch period never merges with the one next to it either. pair a JIIT-62 I Sem
+   batch (eats at 12) with anybody else (eats at 1) and both hours are lunch, but
+   they are two different peoples lunch - printing "Lunch 12:00 - 2:00" would claim
+   a two hour break that neither of them gets. */
+function mergeRuns(slots, lunch)
 {
   const runs = [];
 
   slots.forEach(slot =>
   {
     const last = runs[runs.length - 1];
+    const isLunch = lunch.has(slot);
 
-    if (last && slot === last[1] + 1)
+    if (last && slot === last.to + 1 && !isLunch && !last.lunch)
     {
-      last[1] = slot;
+      last.to = slot;
     }
     else
     {
-      runs.push([slot, slot]);
+      runs.push({ from: slot, to: slot, lunch: isLunch });
     }
   });
 
@@ -103,10 +150,12 @@ export function renderFreeSlotsTool(host)
 {
   const entries = allBatches();
   const byKey = new Map(entries.map(entry => [entry.key, entry]));
+  const ends = dayEnds();
 
   host.innerHTML = `
     <p class="tool-note">Periods where both batches have nothing booked. Pick from either
-      campus — handy when the person you want to meet is on the other one.</p>
+      campus — handy when the person you want to meet is on the other one. Saturday
+      stops at 1:00, because that is when college does.</p>
     <div class="tool-pair">
       <label class="tool-field">
         <span>Batch A</span>
@@ -119,7 +168,10 @@ export function renderFreeSlotsTool(host)
         <em class="tool-scope" id="freeSlotScopeB"></em>
       </label>
     </div>
-    <div id="freeSlotResults"></div>`;
+    <div id="freeSlotResults"></div>
+    <p class="tool-fine">Lunch is not the same hour for everyone — it shifts between
+      years and between campuses. Comparing two batches from different grids, a slot
+      marked <b>Lunch</b> may only be lunch for one of you.</p>`;
 
   const selectA = host.querySelector("#freeSlotA");
   const selectB = host.querySelector("#freeSlotB");
@@ -174,9 +226,11 @@ export function renderFreeSlotsTool(host)
     {
       const busyA = busySlots(a.semester, a.batchId, day);
       const busyB = busySlots(b.semester, b.batchId, day);
+      const dayEnd = ends[day];
+      const lunch = lunchSlots(a, b, dayEnd);
       const free = [];
 
-      for (let slot = 0; slot < SLOT_COUNT; slot++)
+      for (let slot = 0; slot <= dayEnd; slot++)
       {
         if (!busyA.has(slot) && !busyB.has(slot))
         {
@@ -199,12 +253,17 @@ export function renderFreeSlotsTool(host)
       const wrap = document.createElement("div");
       wrap.className = "chip-wrap";
 
-      mergeRuns(free).forEach(([from, to]) =>
+      mergeRuns(free, lunch).forEach(run =>
       {
         const chip = document.createElement("span");
-        chip.className = "slot-chip";
-        chip.textContent =
-          `${formatTime(slotStart(from))} – ${formatTime(slotStart(to) + windowMinutes)}`;
+        chip.className = run.lunch ? "slot-chip lunch" : "slot-chip";
+
+        /* lunch is a whole period wide. it is the gap BETWEEN classes rather than
+           a class itself, so the 50 or 60 minute lesson length does not apply. */
+        const width = run.lunch ? SLOT_LENGTH : windowMinutes;
+        const time = `${formatTime(slotStart(run.from))} – ${formatTime(slotStart(run.to) + width)}`;
+
+        chip.textContent = run.lunch ? `Lunch · ${time}` : time;
         wrap.appendChild(chip);
       });
 

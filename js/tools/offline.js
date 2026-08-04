@@ -75,13 +75,13 @@ window.addEventListener("beforeinstallprompt", event =>
 {
   event.preventDefault();
   deferredInstallPrompt = event;
-  updateInstallButtons();
+  syncInstallPanel();
 });
 
 window.addEventListener("appinstalled", () =>
 {
   deferredInstallPrompt = null;
-  updateInstallButtons();
+  syncInstallPanel();
 });
 
 export function isAppInstalled()
@@ -89,67 +89,96 @@ export function isAppInstalled()
   return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 }
 
-export function initInstallPrompt()
+/* safari has never fired beforeinstallprompt and there is no api to trigger the
+   share sheet, so ios genuinely cannot be done for you - it is the one case where
+   telling somebody where to tap is the only option available. */
+function manualSteps()
 {
-  const btn = document.getElementById("installBtn");
-  if (btn)
+  if (/iPhone|iPad|iPod/.test(navigator.userAgent))
   {
-    btn.addEventListener("click", triggerInstall);
+    return "Tap the Share button in Safari, then <b>Add to Home Screen</b>.";
   }
-  updateInstallButtons();
+
+  return "Open your browser menu, then <b>Install app</b> or <b>Add to Home screen</b>.";
 }
 
 export async function triggerInstall()
 {
-  if (deferredInstallPrompt)
+  if (!deferredInstallPrompt)
   {
-    deferredInstallPrompt.prompt();
-    const choice = await deferredInstallPrompt.userChoice;
-    if (choice && choice.outcome === "accepted")
-    {
-      deferredInstallPrompt = null;
-    }
-    updateInstallButtons();
+    return false;
   }
-  else if (isAppInstalled())
+
+  deferredInstallPrompt.prompt();
+  const choice = await deferredInstallPrompt.userChoice;
+
+  /* a prompt can only ever be shown once. chrome gives us a fresh event if they
+     dismissed it, so only throw ours away once it actually took. */
+  if (choice && choice.outcome === "accepted")
   {
-    alert("This app is already installed on your device.");
+    deferredInstallPrompt = null;
+  }
+
+  syncInstallPanel();
+  return true;
+}
+
+/* the panel is only in the dom while its tool is open, so every one of these
+   lookups has to cope with finding nothing. */
+function syncInstallPanel()
+{
+  const status = document.getElementById("installStatus");
+  const actions = document.getElementById("installActions");
+  const hint = document.getElementById("installHint");
+
+  if (!status || !actions || !hint)
+  {
+    return;
+  }
+
+  if (isAppInstalled())
+  {
+    status.textContent = "Installed — you are looking at the installed copy right now.";
+    status.classList.add("ok");
+    actions.hidden = true;
+    hint.hidden = true;
+    return;
+  }
+
+  status.textContent = "Not installed yet.";
+  status.classList.remove("ok");
+
+  /* no stashed prompt means the browser will not let us open the install dialog
+     ourselves, so the honest thing is to say where the button lives rather than
+     show one that does nothing when tapped. */
+  const canPrompt = Boolean(deferredInstallPrompt);
+  actions.hidden = !canPrompt;
+  hint.hidden = canPrompt;
+
+  if (canPrompt)
+  {
+    actions.innerHTML = `<button class="tool-btn" id="installNow">Install app</button>`;
+    actions.querySelector("#installNow").addEventListener("click", triggerInstall);
   }
   else
   {
-    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-    if (isIOS)
-    {
-      alert("To install this app on iOS: tap the Share icon in Safari and choose 'Add to Home Screen'.");
-    }
-    else
-    {
-      alert("To install this app: open your browser menu (⋮ or ⊕) and choose 'Install app' or 'Add to Home screen'.");
-    }
+    hint.innerHTML = manualSteps();
   }
 }
 
-function updateInstallButtons()
+export function renderInstallTool(host)
 {
-  const btn = document.getElementById("installBtn");
-  if (btn)
-  {
-    btn.hidden = isAppInstalled();
-  }
-  const offlineBtn = document.getElementById("offlineInstall");
-  if (offlineBtn)
-  {
-    if (isAppInstalled())
-    {
-      offlineBtn.textContent = "App Installed";
-      offlineBtn.disabled = true;
-    }
-    else
-    {
-      offlineBtn.textContent = "Install App";
-      offlineBtn.disabled = false;
-    }
-  }
+  host.innerHTML = `
+    <p class="tool-note">Adds the timetable to your home screen so it opens like an
+      app — full screen, its own icon, no address bar.</p>
+    <div class="tool-status" id="installStatus">Checking…</div>
+    <div class="tool-actions" id="installActions" hidden></div>
+    <p class="tool-fine" id="installHint" hidden></p>
+    <p class="tool-fine">Installing does not download the timetable on its own —
+      that is what <b>Offline access</b> does, and it happens by itself on your
+      first visit.</p>`;
+
+  syncInstallPanel();
 }
 
 export function renderOfflineTool(host)
@@ -158,27 +187,12 @@ export function renderOfflineTool(host)
     <p class="tool-note">Stores the app in this browser so it opens with no signal.</p>
     <div class="tool-status" id="offlineStatus">Checking…</div>
     <div class="tool-actions" id="offlineActions">
-      <button class="tool-btn" id="offlineInstall">Install App</button>
       <button class="tool-btn ghost" id="offlineUpdate">Check for updates</button>
       <button class="tool-btn ghost" id="offlineClear">Remove offline copy</button>
     </div>`;
 
   const status = host.querySelector("#offlineStatus");
   const actions = host.querySelector("#offlineActions");
-  const offlineInstallBtn = host.querySelector("#offlineInstall");
-
-  if (offlineInstallBtn)
-  {
-    if (isAppInstalled())
-    {
-      offlineInstallBtn.textContent = "App Installed";
-      offlineInstallBtn.disabled = true;
-    }
-    else
-    {
-      offlineInstallBtn.addEventListener("click", triggerInstall);
-    }
-  }
 
   /* two different reasons this can be unavailable and they need different
      wording, because "your browser is too old" and "youre on http" are very

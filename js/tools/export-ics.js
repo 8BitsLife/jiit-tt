@@ -46,7 +46,6 @@ function escapeIcsText(text)
 
 export function generateBatchIcs(batchId)
 {
-  const semester = currentSemester();
   const campus = currentCampus();
   const mondayDate = getMondayOfCurrentWeek();
   const nowStamp = formatIcsDateTime(new Date(), new Date().getHours() * 60 + new Date().getMinutes()) + "Z";
